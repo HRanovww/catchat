@@ -2,13 +2,14 @@ import os
 import sys
 
 import click
-from flask import Flask
+from flask import Flask, render_template
+from flask_wtf.csrf import CSRFError
 
-from catchat.settings import config
-from catchat.extension import db
 from catchat.blueprints.auth import auth_bp
 from catchat.blueprints.chat import chat_bp
-from catchat.models import User
+from catchat.extensions import db, login_manager, csrf, moment
+from catchat.models import User, Message
+from catchat.settings import config
 
 
 WIN = sys.platform.startswith('win')
@@ -24,13 +25,19 @@ def create_app(config_name=None):
     except OSError:
         pass
 
-    db.init_app(app)
-
-    register_blueprint(app)
-
+    register_extensions(app)
+    register_blueprints(app)
+    register_errors(app)
     register_commands(app)
 
     return app
+
+
+def register_extensions(app):
+    db.init_app(app)
+    login_manager.init_app(app)
+    csrf.init_app(app)
+    moment.init_app(app)
 
 
 def load_config(app, config_name):
@@ -45,9 +52,27 @@ def load_config(app, config_name):
     app.config.from_object(config[config_name])
 
 
-def register_blueprint(app):
+def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(chat_bp)
+
+
+def register_errors(app):
+    @app.errorhandler(400)
+    def bad_request(e):
+        return render_template('error.html', description=e.description, code=e.code), 400
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('error.html', description=e.description, code=e.code), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template('error.html', description='Internal Server Error', code='500'), 500
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        return render_template('error.html', description=e.description, code=e.code), 400
 
 
 def register_commands(app):
@@ -66,7 +91,7 @@ def register_commands(app):
     @click.option('--message', default=300, help='Quantity of messages, default is 300.')
     def forge(message):
         """Generate fake data."""
-        # import random
+        import random
         from sqlalchemy.exc import IntegrityError
 
         from faker import Faker
@@ -83,7 +108,7 @@ def register_commands(app):
         db.session.add(admin)
         db.session.commit()
 
-        click.echo('Generating user...')
+        click.echo('Generating users...')
         for i in range(50):
             user = User(nickname=fake.name(),
                         bio=fake.sentence(),
@@ -99,5 +124,12 @@ def register_commands(app):
 
         click.echo('Generating messages...')
         for i in range(message):
-            pass
+            msg = Message(
+                author=User.query.get(random.randint(1, User.query.count())),
+                body=fake.sentence(),
+                timestamp=fake.date_time_between('-30d', '-2d'),
+            )
+            db.session.add(msg)
+
+        db.session.commit()
         click.echo('Done.')
