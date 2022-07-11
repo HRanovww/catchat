@@ -1,4 +1,5 @@
 $(document).ready(function () {
+    var socket = io.connect();
     var popupLoading = '<i class="notched circle loading icon green"></i> Loading...';
 
     $.ajaxSetup({
