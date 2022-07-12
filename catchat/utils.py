@@ -6,4 +6,4 @@ def flash_errors(form):
         for error in errors:
             flash(u"Error in the %s field - %s" % (
                 getattr(form, field).label.text, error)
-            )
+                  )

@@ -1,8 +1,8 @@
-from flask import Blueprint, redirect, url_for, request, flash, render_template
-from flask_login import current_user, login_user, logout_user, login_required
+from flask import render_template, flash, redirect, url_for, Blueprint, request
+from flask_login import login_user, logout_user, login_required, current_user
 
-from catchat.models import User
 from catchat.extensions import db
+from catchat.models import User
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -49,7 +49,6 @@ def register():
         email = request.form['email'].lower()
 
         user = User.query.filter_by(email=email).first()
-
         if user is not None:
             flash('The email is already registered, please log in.')
             return redirect(url_for('.login'))
