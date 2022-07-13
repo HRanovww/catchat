@@ -7,6 +7,7 @@ from flask_wtf.csrf import CSRFError
 
 from catchat.blueprints.auth import auth_bp
 from catchat.blueprints.chat import chat_bp
+from catchat.blueprints.oauth import oauth_bp
 from catchat.extensions import db, login_manager, csrf, socketio, moment, oauth
 from catchat.models import User, Message
 from catchat.settings import config
@@ -56,6 +57,7 @@ def load_config(app, config_name):
 
 def register_blueprints(app):
     app.register_blueprint(auth_bp)
+    app.register_blueprint(oauth_bp)
     app.register_blueprint(chat_bp)
 
 

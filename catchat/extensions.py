@@ -1,6 +1,6 @@
 from flask_login import LoginManager
 from flask_moment import Moment
-from flask_oauthlib import OAuth
+from flask_oauthlib.client import OAuth
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
