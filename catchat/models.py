@@ -30,7 +30,7 @@ class User(UserMixin, db.Model):
 
     def generate_email_hash(self):
         if self.email is not None and self.email_hash is None:
-            self.email_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
+            self.email_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()  # encode for py23 compatible
 
     @property
     def gravatar(self):
