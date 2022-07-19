@@ -53,7 +53,6 @@ def oauth_login(provider_name):
         return redirect(url_for('chat.home'))
 
     callback = url_for('.oauth_callback', provider_name=provider_name, _external=True)
-    print(callback)
     return providers[provider_name].authorize(callback=callback)
 
 

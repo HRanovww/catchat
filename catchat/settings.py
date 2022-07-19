@@ -2,6 +2,8 @@ import os
 
 
 class BaseConfig:
+    CATCHAT_MESSAGE_PER_PAGE = 30
+
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev key')
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False

@@ -16,6 +16,37 @@ $(document).ready(function () {
         $messages.scrollTop($messages[0].scrollHeight);
     }
 
+    var page = 1;
+
+    function load_messages() {
+        var $messages = $('.messages');
+        var position = $messages.scrollTop();
+        if (position === 0 && socket.nsp !== '/anonymous') {
+            page++;
+            $('.ui.loader').toggleClass('active');
+            $.ajax({
+                url: messages_url,
+                type: 'GET',
+                data: {page: page},
+                success: function (data) {
+                    var before_height = $messages[0].scrollHeight;
+                    $(data).prependTo(".messages").hide().fadeIn(800);
+                    var after_height = $messages[0].scrollHeight;
+                    flask_moment_render_all();
+                    $messages.scrollTop(after_height - before_height);
+                    $('.ui.loader').toggleClass('active');
+                    activateSemantics();
+                },
+                error: function () {
+                    alert('No more messages.');
+                    $('.ui.loader').toggleClass('active');
+                }
+            });
+        }
+    }
+
+    $('.messages').scroll(load_messages);
+
     socket.on('user count', function (data) {
         $('#user-count').html(data.count);
     });
@@ -39,6 +70,16 @@ $(document).ready(function () {
 
     // submit message
     $('#message-textarea').on('keydown', new_message.bind(this));
+
+    // submit snippet
+    $('#snippet-button').on('click', function () {
+        var $snippet_textarea = $('#snippet-textarea');
+        var message = $snippet_textarea.val();
+        if (message.trim() !== '') {
+            socket.emit('new message', message);
+            $snippet_textarea.val('')
+        }
+    });
 
     // open message modal on mobile
     $("#message-textarea").focus(function () {
@@ -67,6 +108,14 @@ $(document).ready(function () {
 
         $('#toggle-sidebar').on('click', function () {
             $('.menu.sidebar').sidebar('setting', 'transition', 'overlay').sidebar('toggle');
+        });
+
+        $('#show-help-modal').on('click', function () {
+            $('.ui.modal.help').modal({blurring: true}).modal('show');
+        });
+
+        $('#show-snippet-modal').on('click', function () {
+            $('.ui.modal.snippet').modal({blurring: true}).modal('show');
         });
 
         $('.pop-card').popup({
